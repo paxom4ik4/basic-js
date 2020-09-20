@@ -1,30 +1,69 @@
-module.exports = function transform(arr) {
-  if (!Array.isArray(arr)) throw new Error("if arr is not an Array");
-
-  let count = 1;
-  let res = arr;
-
-  res.filter((item) =>
-    item === "--discard-next" || item === "--discard-prev" ? count++ : ""
-  );
-
-  for (let i = 0, len = res.length; i < len; i++) {
-    if (res[i] === "--double-next")
-      i + 1 < len ? (res[i] = res[i + 1]) : (res[i] = " ");
-    if (res[i] === "--double-prev") i ? (res[i] = res[i - 1]) : (res[i] = " ");
-  }
-
-  while (count--) {
-    for (let i = 0, len = res.length; i < len; i++) {
-      if (res[i] === "--discard-next" || res[i] === "--discard-prev") {
-        if (res[i] === "--discard-next" && i + 1 < len) res[i + 1] = " ";
-        if (res[i] === "--discard-prev" && i) res[i - 1] = " ";
-        res[i] = " ";
-        break;
+module.exports = function transform(array) {
+  if (!Array.isArray(array)) throw new Error("if arr is not an Array");
+  let arr = [...array];
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === "--discard-prev") {
+      if (typeof arr[i - 2] === "string") {
+        arr[i - 2] = " ";
+        arr[i] = " ";
+      } else if (typeof arr[i - 2] === "string") {
+        arr[i] = " ";
+        arr[i - 1] = " ";
+        arr[i - 2] = " ";
+      } else if (arr[i - 1] > 0) {
+        arr[i - 1] = " ";
+        arr[i] = " ";
+      } else {
+        arr[i] = " ";
       }
     }
-    res = res.filter((item) => item !== " ");
+    if (arr[i] === "--discard-next") {
+      if (typeof arr[i + 2] === "string") {
+        arr[i] = " ";
+        arr[i + 1] = " ";
+        arr[i + 2] = " ";
+      } else if (arr[i + 1] < arr.length) {
+        arr[i + 1] = " ";
+        arr[i] = " ";
+      } else {
+        arr[i] = " ";
+      }
+    }
+  }
+  arr = arr.filter((elem) => elem !== " ");
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === "--double-next") {
+      if (typeof arr[i + 2] === "string") {
+        if (arr[i + 2] === "--double-prev") {
+          arr[i] = arr[i + 1];
+          arr[i + 2] = arr[i + 1];
+        }
+      }
+    }
+
+    if (arr[i] === "--double-next") {
+      if (arr[i + 1] < arr.length) {
+        arr[i] = arr[i + 1];
+      } else {
+        arr[i] = " ";
+      }
+    }
+    if (arr[i] === "--double-prev") {
+      if (arr[i - 1] > 0) {
+        arr[i] = arr[i - 1];
+      } else {
+        arr[i] = " ";
+      }
+    }
   }
 
-  return res;
+  arr = arr.filter((elem) => elem !== " ");
+  arr = arr.filter(
+    (elem) =>
+      elem !== "--discard-prev" ||
+      "--discard-next" ||
+      "--double-prev" ||
+      "--double-next"
+  );
+  return arr;
 };
